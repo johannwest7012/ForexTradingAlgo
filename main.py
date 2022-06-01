@@ -12,80 +12,43 @@ import matplotlib.pyplot as plt
 
 from transitions import Machine
 import random
-
-if not mt5.initialize():
-    print("initialize() failed, error code =", mt5.last_error())
-    quit()
+from logininfo import login, password, server
 
 
-#dont forget to initilize a platform you have to download MetaTrader'five' first on MQL'five' (on your computer i guess)
-timezone = pytz.timezone("Etc/UTC")
-# create 'datetime' object in UTC time zone to avoid the implementation of a local time zone offset
-utc_from = datetime(2020, 1, 10, tzinfo=timezone)
-
-#PaperTrading account info
-#login : 'five'8'four''one''zero'679
-#password : ha'four'eavfj
-#investor : obeppey'zero'
-#server : MetaQuotes-Demo
-
-
-login = 58410679 #login (int) number goes here
-password = 'ha4eavfj' #password (string) goes here
-server = 'MetaQuotes-Demo' #server (string) goes here
-
-
-#logs in to the account
-mt5.login(login, password, server)
-
-#get account info
-account_info = mt5.account_info()
-print(account_info)
-
-
-#getting specific account data
-login_number = account_info.login
-balance = account_info.balance
-equity = account_info.equity
-
-print()
-print("Login:",login_number)
-print("Balance:", balance)
-print('Equity:',equity)
 
 
 #get number of symbols with symbols_total()
-num_symbols = mt5.symbols_total()
-
-
-#get all symbols and their specification
-symbols = mt5.symbols_get()
-
-#get current symbol price
-symbol_price = mt5.symbol_info_tick("EURUSD")._asdict()
-print("EURUSD price: ", symbol_price)
-
-#ohlc_data
-ohlc_data = pd.DataFrame(mt5.copy_rates_range("EURUSD",mt5.TIMEFRAME_D1,datetime(2022,1,1),datetime.now()))
-
-fig = px.line(ohlc_data, x = ohlc_data['time'], y = ohlc_data['close'])
-#fig.show()
+# num_symbols = mt5.symbols_total()
+#
+#
+# #get all symbols and their specification
+# symbols = mt5.symbols_get()
+#
+# #get current symbol price
+# symbol_price = mt5.symbol_info_tick("EURUSD")._asdict()
+# print("EURUSD price: ", symbol_price)
+#
+# #ohlc_data
+# ohlc_data = pd.DataFrame(mt5.copy_rates_range("EURUSD",mt5.TIMEFRAME_D1,datetime(2022,1,1),datetime.now()))
+#
+# fig = px.line(ohlc_data, x = ohlc_data['time'], y = ohlc_data['close'])
+# #fig.show()
 
 
 
 # total number of our orders
-num_orders = mt5.orders_total()
-
-# list of orders
-orders = mt5.orders_get()
-
-
-# total number of positions
-num_positions = mt5.positions_total()
-
-
-# list of positions
-positions = mt5.positions_get()
+# num_orders = mt5.orders_total()
+#
+# # list of orders
+# orders = mt5.orders_get()
+#
+#
+# # total number of positions
+# num_positions = mt5.positions_total()
+#
+#
+# # list of positions
+# positions = mt5.positions_get()
 
 #can also get all of these for history orders and history deals
 
@@ -153,19 +116,26 @@ class Candle:
 
 
 
-class Pair:
+class Strat1Pair:
     states = ['zero', 'one', 'onefive', 'two', 'twofive', 'three', 'threefive', 'four', 'fourfive', 'foursevenfive', 'five', 'six']
 
 
-    def __init__(self, pair_ticker, transitions):
+    def __init__(self, pair_ticker, volume, transitions):
         self.ticker = pair_ticker
+        self.volume = volume
         self.candle_time = "M1"
         self.cur_candle = Candle(0, 0, 0, 0)
         self.candle_arr = []
 
         self.median_line = 0
+        self.high_fib_price = 0
+        self.low_fib_price = 0
 
-        self.sold = False
+        self.fibonacci_618_line = 0
+
+
+
+        self.opened = False
 
 
         """
@@ -178,13 +148,12 @@ class Pair:
         * 26 possible transitions 
         
         """
-        self.machine = Machine(model=self, states= Pair.states, transitions=transitions, initial='zero')
+        self.machine = Machine(model=self, states= Strat1Pair.states, transitions=transitions, initial='zero')
 
 
 
     def updateCurCandle(self):
         self.cur_candle.printCandle()
-
 
         rates = mt5.copy_rates_from_pos(self.ticker, mt5.TIMEFRAME_M1, 1, 1)
 
@@ -234,63 +203,134 @@ class Pair:
 
         #breaking red
         if (self.state == 'four' or self.state == 'fourfive') and (self.cur_candle.close < self.median_line and self.cur_candle.candleColor() == 'red'):
+            #red candle that breaks down past the support median line
             self.breaking_red()
 
         #no break green
-        elif (self.state == 'foursevenfive' or self.state == 'five') and (self.cur_candle.close < self.median_line and self.cur_candle.candleColor() == 'green'):
-            # ^ and self.not above fibonacci line
+        elif (self.state == 'foursevenfive' or self.state == 'five') and (self.cur_candle.close < self.median_line and self.cur_candle.close < self.fibonacci_618_line) and self.cur_candle.candleColor() == 'green':
+            #green that does not close above median line and fibonacci line
             self.no_break_green()
 
         #breaking green
-        elif (self.state == 'foursevenfive' or self.state == 'five') and (self.cur_candle.close > self.median_line and self.cur_candle.candleColor() == 'green'):
-            # ^ and self.not above fibonacci line
+        elif (self.state == 'foursevenfive' or self.state == 'five') and (self.cur_candle.close > self.median_line or self.cur_candle.close > self.fibonacci_618_line) and self.cur_candle.candleColor() == 'green':
+            #green that does close above median line or fibonacci line
             self.no_break_green()
 
         #signal red
-        elif self.state == 'five' and self.cur_candle.candleColor() == 'red':
-            # ^ and self.cur candle max above fibonacci line
+        elif self.state == 'five' and self.cur_candle.candleColor() == 'red' and self.cur_candle.high > self.fibonacci_618_line:
+            #red candle who's high breaks up through fibonacci line
             self.signal_red()
 
         #fail signal red
-        elif self.state == 'five' and self.cur_candle.candleColor() == 'red':
-            # ^ and self.cur candle max not above fibonacci line
+        elif self.state == 'five' and self.cur_candle.candleColor() == 'red' and self.cur_candle.high < self.fibonacci_618_line:
+            #signal red but it does not break up through fibonacci line
             self.fail_signal_red()
 
         #green
-        elif (self.state != 'foursevenfive' or self.state != 'five') and self.cur_candle.candleColor() == 'green':
+        elif (self.state != 'foursevenfive' and self.state != 'five' and self.state != 'six') and self.cur_candle.candleColor() == 'green':
             self.green()
 
         #red
-        elif self.state != 'five' and self.cur_candle.candleColor() == 'red':
+        elif (self.state != 'five' and self.state != 'six') and self.cur_candle.candleColor() == 'red':
             self.red()
 
+
+        self.state_checks()
+
+    def state_checks(self):
         if self.state == 'six':
             print("SATISFIED CONDITIONS, SELLING")
-            self.sell()
+            self.opened = open_position(self.ticker, "SELL", self.volume, 300, 100)
+
+        elif self.state == 'twofive':
+            self.median_line = self.cur_candle.close
+
+        elif self.state == 'threefive':
+            self.high_fib_price = self.cur_candle.high
+
+        elif self.state == 'foursevenfive':
+            self.low_fib_price = self.cur_candle.low
+            self.fibonacci_618_line = fibonacci_618(self.high_fib_price, self.low_fib_price)
 
 
 
-    def sell(self):
-        print("Selling function commencing...")
-        request_sell = {
-            "action" : mt5.TRADE_ACTION_DEAL, #specify you want to trade
-            "symbol" : "EURUSD",  #symbol
-            "volume": 20.0, #FLOAT  #volume to trade
-            "type": mt5.ORDER_TYPE_SELL,  #trade type i.e buy or sell
-            "position" : 158622885 ,#select the postiojn you want to close, need to get this ticket number from somewhere
-            "price": mt5.symbol_info_tick("EURUSD").ask,  #buy or sell at what price (currently the asking price)
-            "sl": 0.0, #FLOAT    #stop loss ('zero'.'zero' is none)
-            "tp": 0.0, #FLOAT    #take profit
-            "deviation": 20, #INTEGER   #will still trade if within deviation
-            "magic": 234000, #INTEGER   #magic number to identify trade
-            "comment" : "python script close",   #comment that will happen with trade
-            "type_time" : mt5.ORDER_TIME_GTC,    #time in order (GTC means good till cancel)
-            "type_filling" : mt5.ORDER_FILLING_IOC,  #IOC means immeditate or cancel, this depends on broker
-        }
-        # send in the order
-        order_buy = mt5.order_send(request_sell)
-        print(order_buy)
-        self.sold = True
+
+
+def connect(login, password, server):
+    mt5.initialize()
+    authorized = mt5.login(login, password, server)
+
+    if authorized:
+        print("Connected: Connecting to MT5 Client")
+        account_info = mt5.account_info()
+        print(account_info)
+
+        # getting specific account data
+        login_number = account_info.login
+        balance = account_info.balance
+        equity = account_info.equity
+
+        print()
+        print("Login:", login_number)
+        print("Balance:", balance)
+        print('Equity:', equity)
+    else:
+        print("Failed to connect at account")
+
+
+def open_position(pair, order_type, size, tp_distance=None, stop_distance=None):
+    symbol_info = mt5.symbol_info(pair)
+    if symbol_info is None:
+        print(pair, "not found")
+        return False
+
+    if not symbol_info.visible:
+        print(pair, "is not visible, trying to switch on")
+        if not mt5.symbol_select(pair, True):
+            print("symbol_select({}}) failed, exit", pair)
+            return False
+    print(pair, "found!")
+
+    point = symbol_info.point
+
+    if (order_type == "BUY"):
+        order = mt5.ORDER_TYPE_BUY
+        price = mt5.symbol_info_tick(pair).ask
+        if (stop_distance):
+            sl = price - (stop_distance * point)
+        if (tp_distance):
+            tp = price + (tp_distance * point)
+
+    if (order_type == "SELL"):
+        order = mt5.ORDER_TYPE_SELL
+        price = mt5.symbol_info_tick(pair).bid
+        if (stop_distance):
+            sl = price + (stop_distance * point)
+        if (tp_distance):
+            tp = price - (tp_distance * point)
+
+    request = {
+        "action": mt5.TRADE_ACTION_DEAL,
+        "symbol": pair,
+        "volume": float(size),
+        "type": order,
+        "price": price,
+        "sl": sl,
+        "tp": tp,
+        "magic": 22,
+        "comment": "",
+        "type_time": mt5.ORDER_TIME_GTC,
+        "type_filling": mt5.ORDER_FILLING_IOC,
+    }
+
+    result = mt5.order_send(request)
+
+    if result.retcode != mt5.TRADE_RETCODE_DONE:
+        print("Failed to send order :(")
+        return False
+    else:
+        print("Order successfully placed!")
+        return True
 
 
 
@@ -374,15 +414,17 @@ def test(pair1):
 
 
 
-    test_pair = Pair(pair1,strat1_transitions)
+    test_pair = Strat1Pair(pair_ticker= pair1, volume= 10, transitions= strat1_transitions)
     cur_len = 0
     cur_time = time.time()
     sold = False
     while not sold:
         if time.time() > (cur_time + 60):
+            #updates every 60 seconds, will probably need to change this to shroter time period, if that doesn't work
+            #you can change it back to 60 because it might be working fine right now
 
             test_pair.updateCurCandle()
-            sold = test_pair.sold
+            sold = test_pair.opened
             if sold is True:
                 print("sold is true")
             if len(test_pair.candle_arr) > cur_len:
@@ -402,7 +444,7 @@ def main():
     print()
     ##
 
-
+    connect(login, password, server)
     test("EURUSD")
 
 if __name__ == '__main__':
