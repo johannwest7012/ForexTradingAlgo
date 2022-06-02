@@ -1,17 +1,17 @@
 import MetaTrader5 as mt5
 import pandas
-import pandas as pd
-import plotly.express as px
-from datetime import datetime, date
-import pytz
+# import pandas as pd
+# import plotly.express as px
+# from datetime import datetime, date
+# import pytz
 import time
 import copy
-import yfinance
-import matplotlib.pyplot as plt
+# import yfinance
+# import matplotlib.pyplot as plt
 
 
 from transitions import Machine
-import random
+# import random
 from logininfo import login, password, server
 
 
@@ -153,11 +153,11 @@ class Strat1Pair:
 
 
     def updateCurCandle(self):
-        self.cur_candle.printCandle()
+        # self.cur_candle.printCandle()
 
         rates = mt5.copy_rates_from_pos(self.ticker, mt5.TIMEFRAME_M1, 1, 1)
 
-        print("Rates:", rates)
+        # print("Rates:", rates)
 
         self.cur_candle.open = rates[0][1]
         self.cur_candle.high = rates[0][2]
@@ -183,19 +183,14 @@ class Strat1Pair:
             self.candle_arr.append(copy.deepcopy(self.cur_candle))
 
             print("Candle arr:")
-            print("len:", len(self.candle_arr))
             for i in range(len(self.candle_arr)):
+                print('TICKER:', self.ticker)
                 print(self.candle_arr[i].printCandle())
 
             #Additional candle has been installed, here you will need to update state
 
 
-        else:
-            print("UpdateCurCandle called, but candle has not changed")
-            print("Cur candle")
-            self.cur_candle.printCandle()
-            print("-1 index Candle")
-            self.candle_arr[-1].printCandle()
+
 
         return
 
@@ -239,8 +234,13 @@ class Strat1Pair:
 
     def state_checks(self):
         if self.state == 'six':
-            print("SATISFIED CONDITIONS, SELLING")
+            print("SATISFIED CONDITIONS, SELLING", self.ticker)
             self.opened = open_position(self.ticker, "SELL", self.volume, 300, 100)
+            if self.opened == False:
+                self.state == 'zero'
+            else:
+                print("SELL MADE EXITING LOOP")
+
 
         elif self.state == 'twofive':
             self.median_line = self.cur_candle.close
@@ -343,18 +343,18 @@ def sell_strategy1_scanner():
 
 
 
-def test(pair1):
+def test(pair_list, volume):
     # get 'one''zero' EURUSD H'four' bars starting from 'zero''one'.'one''zero'.'two''zero''two''zero' in UTC time zone
-    rates = mt5.copy_rates_from_pos(pair1, mt5.TIMEFRAME_M1, 1, 1)
+    # rates = mt5.copy_rates_from_pos(pair1, mt5.TIMEFRAME_M1, 1, 1)
 
 
 
 
-    print("Display obtained data 'as is'")
-    for rate in rates:
-        print(rate)
-
-    pandas.set_option("display.max_rows", None,"display.max_columns",None)
+    # print("Display obtained data 'as is'")
+    # for rate in rates:
+    #     print(rate)
+    #
+    # pandas.set_option("display.max_rows", None,"display.max_columns",None)
     # convert time in seconds into the datetime format
     # rates_frame['time'] = pd.to_datetime(rates_frame['time'], unit='s')
 
@@ -407,31 +407,39 @@ def test(pair1):
 
 
 
+    object_list = []
+    for i in pair_list:
+        object_list.append(Strat1Pair(pair_ticker=i, volume=volume, transitions=strat1_transitions))
 
-
-
-
-
-
-
-    test_pair = Strat1Pair(pair_ticker= pair1, volume= 10, transitions= strat1_transitions)
-    cur_len = 0
-    cur_time = time.time()
     sold = False
     while not sold:
-        if time.time() > (cur_time + 60):
-            #updates every 60 seconds, will probably need to change this to shroter time period, if that doesn't work
-            #you can change it back to 60 because it might be working fine right now
+        for i in object_list:
 
-            test_pair.updateCurCandle()
-            sold = test_pair.opened
-            if sold is True:
-                print("sold is true")
-            if len(test_pair.candle_arr) > cur_len:
-                print(len(test_pair.candle_arr))
-                cur_len += 1
-            cur_time = time.time()
+            i.updateCurCandle()
+            sold = i.opened
 
+
+
+
+
+
+
+
+    # test_pair = Strat1Pair(pair_ticker= pair1, volume= 10, transitions= strat1_transitions)
+    # cur_time = time.time()
+    # sold = False
+    # while not sold:
+    #     if time.time() > (cur_time + 60):
+    #         #updates every 60 seconds, will probably need to change this to shroter time period, if that doesn't work
+    #         #you can change it back to 60 because it might be working fine right now
+    #
+    #         test_pair.updateCurCandle()
+    #         sold = test_pair.opened
+    #         if sold is True:
+    #             print("sold is true")
+    #
+    #         cur_time = time.time()
+    #
 
 
 
@@ -445,8 +453,7 @@ def main():
     ##
 
     connect(login, password, server)
-    test("EURUSD")
+    test(["EURUSD"], 10.0)
 
-if __name__ == '__main__':
-    main()
+main()
 
