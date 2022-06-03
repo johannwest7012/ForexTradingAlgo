@@ -120,8 +120,8 @@ class Strat1Pair:
     states = ['zero', 'one', 'onefive', 'two', 'twofive', 'three', 'threefive', 'four', 'fourfive', 'foursevenfive', 'five', 'six']
 
 
-    def __init__(self, pair_ticker, volume, transitions):
-        self.ticker = pair_ticker
+    def __init__(self, pair_symbol, volume, transitions):
+        self.symbol = pair_symbol
         self.volume = volume
         self.candle_time = "M1"
         self.cur_candle = Candle(0, 0, 0, 0)
@@ -155,7 +155,7 @@ class Strat1Pair:
     def updateCurCandle(self):
         # self.cur_candle.printCandle()
 
-        rates = mt5.copy_rates_from_pos(self.ticker, mt5.TIMEFRAME_M1, 1, 1)
+        rates = mt5.copy_rates_from_pos(self.symbol, mt5.TIMEFRAME_M1, 1, 1)
 
         # print("Rates:", rates)
 
@@ -183,9 +183,16 @@ class Strat1Pair:
             self.candle_arr.append(copy.deepcopy(self.cur_candle))
 
             print("Candle arr:")
-            for i in range(len(self.candle_arr)):
-                print('TICKER:', self.ticker)
+            index = 0
+            if len(self.candle_arr) > 20:
+                index = len(self.candle_arr) - 10
+            for i in range(index, len(self.candle_arr)):
+                print('SYMBOL:', self.symbol)
                 print(self.candle_arr[i].printCandle())
+
+            print()
+            print("-----------")
+            print()
 
             #Additional candle has been installed, here you will need to update state
 
@@ -234,8 +241,8 @@ class Strat1Pair:
 
     def state_checks(self):
         if self.state == 'six':
-            print("SATISFIED CONDITIONS, SELLING", self.ticker)
-            self.opened = open_position(self.ticker, "SELL", self.volume, 300, 100)
+            print("SATISFIED CONDITIONS, SELLING", self.symbol)
+            self.opened = open_position(self.symbol, "SELL", self.volume, 300, 100)
             if self.opened == False:
                 self.state == 'zero'
             else:
@@ -409,7 +416,7 @@ def test(pair_list, volume):
 
     object_list = []
     for i in pair_list:
-        object_list.append(Strat1Pair(pair_ticker=i, volume=volume, transitions=strat1_transitions))
+        object_list.append(Strat1Pair(pair_symbol=i, volume=volume, transitions=strat1_transitions))
 
     sold = False
     while not sold:
@@ -425,7 +432,7 @@ def test(pair_list, volume):
 
 
 
-    # test_pair = Strat1Pair(pair_ticker= pair1, volume= 10, transitions= strat1_transitions)
+    # test_pair = Strat1Pair(pair_symbol= pair1, volume= 10, transitions= strat1_transitions)
     # cur_time = time.time()
     # sold = False
     # while not sold:
@@ -452,8 +459,10 @@ def main():
     print()
     ##
 
+    pair_list = ['GBPUSD', 'USDCHF', 'USDJPY', 'USDCNH', 'USDRUB', 'AUDUSD', 'NZDUSD', 'USDCAD', 'USDSEK']
+
     connect(login, password, server)
-    test(["EURUSD"], 10.0)
+    test(pair_list, 10.0)
 
 main()
 
