@@ -31,6 +31,11 @@ Once certain states are reached, sometimes certian pieces of information are sto
 
 Here is a breakdown of the state transitions 
 
+0 -> 1 means moving from state 0 to state 1 <br />
+0 -> 0 means if that requirement is met it simply stays in the 0 state. <br />
+When I say "green candlestick" or "green" what that means is to transition states the next candle must be a green candle. <br />
+The picture above is better for visulization, however this is more clear. I would recommend following along with the picture first.  <br />
+
 0 : Starting state <br />
 0 -> 1 : Green Candlestick <br />
 0 -> 0 : Red Candlestick <br />
