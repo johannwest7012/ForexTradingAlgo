@@ -4,5 +4,6 @@ As the spiritual successor to the Cryptocurrency Algorithmic Trader, this progra
 
 Breakdown of the finite state machine algorithm in layman's terms : 
 
+![Pic 1](fsm.jpg)
 
 
