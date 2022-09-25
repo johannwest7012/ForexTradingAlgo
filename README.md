@@ -82,7 +82,7 @@ The picture above is better for visulization, however this is more clear. I woul
 
 6 : FINAL STATE , sell the currency pair <br />
 
-Buy back strategy : currently the only buy back strategy is buying back after a certange percentage profit is made, or a certain percentage of profit is lost. 
+Buy back strategy : currently the only buy back strategy is buying back after a certange percentage profit is made, or a certain percentage of profit is lost. A better one will be implemented in the future. 
 
 Strategy in english : 
 There must be two or more green candles, followed by two or more red candles, followed by two or more green candles. Then there must be a at least one red candle, followed by a red candle that closes below the support line. Then there can be as many red candles after this, but eventually there must be a green candle, that does not close above the resistance line. Then there must be a red candle who's high breaks the fib 0.618 line. Then we sell the currency. 
