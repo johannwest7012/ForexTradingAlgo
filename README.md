@@ -31,9 +31,9 @@ Once certain states are reached, sometimes certian pieces of information are sto
 
 Here is a breakdown of the state transitions 
 
-0 : Starting state 
-0 -> 1 : Green Candlestick 
-0 -> 0 : Red Candlestick 
+0 : Starting state <br />
+0 -> 1 : Green Candlestick <br />
+0 -> 0 : Red Candlestick <br />
 
 1 -> 1.5 : Green <br />
 1 -> 0 : Red <br />
