@@ -35,46 +35,46 @@ Here is a breakdown of the state transitions
 0 -> 1 : Green Candlestick 
 0 -> 0 : Red Candlestick 
 
-1 -> 1.5 : Green 
-1 -> 0 : Red 
+1 -> 1.5 : Green <br />
+1 -> 0 : Red <br />
 
-1.5 -> 2 : Red 
-1.5 -> 1.5 : Green 
+1.5 -> 2 : Red <br />
+1.5 -> 1.5 : Green <br />
 
-2 -> 2.5 : Red 
-2 -> 0 : Green 
+2 -> 2.5 : Red <br />
+2 -> 0 : Green <br />
 
 - When 2.5 is reached store the top of the last red body as support line
 
-2.5 -> 3 : Green 
-2.5 -> 2.5 : Red 
+2.5 -> 3 : Green <br />
+2.5 -> 2.5 : Red <br />
 - If 2.5 to 2.5, update support line 
 
-3 -> 3.5 : Green 
-3 -> 0 : Red 
+3 -> 3.5 : Green <br />
+3 -> 0 : Red <br />
 
-3.5 -> 4 : Red 
-3.5 -> 3.5 : Green 
+3.5 -> 4 : Red <br />
+3.5 -> 3.5 : Green <br />
 
-4 -> 4.75 : Red candle that breaks down through the support line 
-4 -> 4.5 : Red 
-4 -> 0 : Green 
+4 -> 4.75 : Red candle that breaks down through the support line <br />
+4 -> 4.5 : Red <br />
+4 -> 0 : Green <br />
 
-4.5 -> 4.75 : Red that breaks down and closes through the support line 
-4.5 -> 4.5 : Red 
-4.5 -> 0 : Green 
+4.5 -> 4.75 : Red that breaks down and closes through the support line <br />
+4.5 -> 4.5 : Red <br />
+4.5 -> 0 : Green <br />
 
 - Store the old support line as the new resistance line 
 
-4.75 -> 5 : Green no break (Green candle that does not close above resistnace line or fib 0.618 line) 
-4.75 -> 4.75 : Red 
+4.75 -> 5 : Green no break (Green candle that does not close above resistnace line or fib 0.618 line) <br />
+4.75 -> 4.75 : Red <br />
 
-5 -> 6 : Red candle whos high breaks the fib 0.618 line 
-5 -> 5 : Green no break 
-5 -> 0 : Green that breaks 
-5 -> 0 : Red who's high does not break the fibonacci line 
+5 -> 6 : Red candle whos high breaks the fib 0.618 line <br />
+5 -> 5 : Green no break <br />
+5 -> 0 : Green that breaks <br />
+5 -> 0 : Red who's high does not break the fibonacci line <br />
 
-6 : FINAL STATE , sell the currency pair 
+6 : FINAL STATE , sell the currency pair <br />
 
 Buy back strategy : currently the only buy back strategy is buying back after a certange percentage profit is made, or a certain percentage of profit is lost. 
 
