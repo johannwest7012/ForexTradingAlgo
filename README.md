@@ -2,6 +2,12 @@
 
 As the spiritual successor to the Cryptocurrency Algorithmic Trader, this program takes what was learned there and innovates. While still providing automated and scheduled algorithmic market analysis, this program provides a platform based around finite state machines that streamlines the development of trading strategies, allowing for rapid creation and testing. It's flying instead of walking. 
 
+The purpose of the project in mind is to provide automated Forex market swing trading using pre-defined strategies. 
+
+Eventually, the project's main attraction evolved to be the framework for implementing those strategies. It uses finite-state machines to provide streamlined developing capabilities. This provides ease to creating and testing new strategies as they simply must be defined in a finite state machine format. 
+
+Now, the project is a fully automated and scheduled Forex trading platform that analyzes markets using algorithmic trading strategies designed to replicate traditional human judgment to predict market fluctuations. 
+
 Breakdown of the finite state machine algorithm in layman's terms : 
 
 The most powerful feature of the program is the infrastructure to quickly and effciently build customizable finite state machines, which translate into strategies.
